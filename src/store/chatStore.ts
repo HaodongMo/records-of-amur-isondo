@@ -4,7 +4,7 @@ import { openRouterService } from '../lib/openrouter'
 
 interface ChatMessage {
   id: number
-  sender: 'FLAME' | 'USER'
+  sender: string
   text: string
   isUser: boolean
 }
@@ -30,16 +30,21 @@ interface ChatState {
   isGeneratingQuestions: boolean
   hasWon: boolean
   error: string | null
+  isInitialized: boolean
+  isInitializing: boolean
+  characterName: string
 
   // Actions
   setApiKey: (key: string) => void
   clearApiKey: () => void
   setConfig: (config: Partial<GameConfig>) => void
+  setCharacterName: (name: string) => void
   addMessage: (message: Omit<ChatMessage, 'id'>) => void
   clearMessages: () => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
   setQuestionOptions: (options: QuestionOption[]) => void
+  initializeChat: () => Promise<void>
 
   // LLM Actions
   sendUserMessage: (message: string) => Promise<void>
@@ -51,13 +56,33 @@ interface ChatState {
 
 const API_KEY_COOKIE = 'openrouter_api_key'
 
+// Helper function to extract character name from persona
+const extractCharacterName = (persona: string): string => {
+  // Try to extract name from common patterns
+  const patterns = [
+    /^(?:the\s+)?(.+?),\s+who/i,  // "the Egyptian God, Anubis, who..."
+    /^(?:the\s+)?(.+?)\s+who/i,   // "Anubis who..."
+    /^(?:the\s+)?(.+?)\./i,       // "the Egyptian God, Anubis."
+    /^(?:the\s+)?(.+?)$/i         // fallback to full persona
+  ]
+
+  for (const pattern of patterns) {
+    const match = persona.match(pattern)
+    if (match) {
+      return match[1].trim()
+    }
+  }
+
+  return persona
+}
+
 export const useChatStore = create<ChatState>((set, get) => ({
   apiKey: null,
   config: {
-    persona: 'a WWI soldier who fought in the trenches of the Western Front. You have firsthand experience of the war and strong opinions about its causes and conduct.',
-    question: "Who's responsible for starting WWI?",
-    targetTopic: 'WWI responsibility and causes',
-    context: 'This is an educational discussion about the complex causes and responsibility for World War I.'
+    persona: 'the Egyptian God, Anubis, who is wise, mysterious, and speaks in riddles.',
+    question: "What is the significance of the afterlife in ancient Egyptian culture?",
+    targetTopic: 'Ancient Egyptian beliefs about the afterlife',
+    context: 'This is an educational discussion about ancient Egyptian mythology and culture.'
   },
   messages: [],
   questionOptions: [],
@@ -65,6 +90,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isGeneratingQuestions: false,
   hasWon: false,
   error: null,
+  isInitialized: false,
+  isInitializing: false,
+  characterName: 'Anubis',
 
   setApiKey: (key) => {
     set({ apiKey: key })
@@ -86,15 +114,29 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
-  setConfig: (newConfig) => set((state) => ({
-    config: { ...state.config, ...newConfig }
-  })),
+  setConfig: (newConfig) => set((state) => {
+    const updatedConfig = { ...state.config, ...newConfig }
+    let characterName = state.characterName
+
+    // If persona is being updated, extract character name
+    if (newConfig.persona) {
+      characterName = extractCharacterName(newConfig.persona)
+      console.log(`🎭 Extracted character name: "${characterName}" from persona: "${newConfig.persona}"`)
+    }
+
+    return {
+      config: updatedConfig,
+      characterName
+    }
+  }),
+
+  setCharacterName: (name: string) => set({ characterName: name }),
 
   addMessage: (message) => set((state) => ({
     messages: [...state.messages, { ...message, id: Date.now() }]
   })),
 
-  clearMessages: () => set({ messages: [], hasWon: false }),
+  clearMessages: () => set({ messages: [], hasWon: false, isInitialized: false, isInitializing: false }),
 
   setLoading: (loading) => set({ isLoading: loading }),
 
@@ -146,7 +188,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
       // Add AI response
       state.addMessage({
-        sender: 'FLAME',
+        sender: state.characterName.toUpperCase(),
         text: answer,
         isUser: false
       })
@@ -177,7 +219,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
         // Add follow-up response
         state.addMessage({
-          sender: 'FLAME',
+          sender: state.characterName.toUpperCase(),
           text: followUp,
           isUser: false
         })
@@ -240,6 +282,47 @@ export const useChatStore = create<ChatState>((set, get) => ({
       state.setError(error instanceof Error ? error.message : 'Failed to generate follow-up questions')
     } finally {
       set({ isGeneratingQuestions: false })
+    }
+  },
+
+
+  initializeChat: async () => {
+    const state = get()
+
+    // Prevent concurrent initialization
+    if (state.isInitialized || state.isInitializing) return
+
+    try {
+      set({ isInitializing: true })
+      await state.initializeApiKey()
+
+      console.log('Starting initialization - generating greeting and questions...')
+
+      // Generate greeting and questions in parallel to save time
+      const [greeting] = await Promise.all([
+        openRouterService.generateGreeting(
+          state.config.persona,
+          state.config.context || ''
+        ),
+        state.generateInitialQuestions()
+      ])
+
+      console.log('Initialization complete - adding greeting message')
+
+      // Add greeting message to state
+      state.addMessage({
+        sender: state.characterName.toUpperCase(),
+        text: greeting,
+        isUser: false
+      })
+
+      // Mark as initialized only AFTER all API calls succeed
+      set({ isInitialized: true, isInitializing: false })
+
+    } catch (error) {
+      console.error('Error initializing chat:', error)
+      state.setError(error instanceof Error ? error.message : 'Failed to initialize chat')
+      set({ isInitializing: false })
     }
   }
 }))

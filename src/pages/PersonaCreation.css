@@ -1,0 +1,319 @@
+/* PersonaCreation Component Styles */
+
+.persona-creation {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background-color: #1a1a1a;
+}
+
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.6);
+  z-index: 1;
+}
+
+.texture-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom right, rgba(0,0,0,0.5), transparent, rgba(0,0,0,0.3));
+  z-index: 2;
+}
+
+.slanted-bar {
+  position: absolute;
+  top: 0;
+  left: 10%;
+  width: 80%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.3);
+  transform: skewX(-10deg);
+}
+
+.central-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  max-width: 600px;
+  width: 90%;
+  text-align: center;
+}
+
+.persona-header {
+  margin-bottom: 30px;
+}
+
+.page-title {
+  font-size: 36px;
+  font-weight: bold;
+  color: #fbbf24;
+  margin: 0 0 20px 0;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+.research-question {
+  background: rgba(0,0,0,0.8);
+  border: 2px solid #fbbf24;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  backdrop-filter: blur(4px);
+}
+
+.research-question h2 {
+  color: #fbbf24;
+  font-size: 18px;
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.research-question p {
+  color: white;
+  font-size: 20px;
+  font-style: italic;
+  margin: 0 0 15px 0;
+  line-height: 1.4;
+}
+
+.reroll-question-btn {
+  background: rgba(139, 69, 19, 0.9);
+  border: 2px solid #fbbf24;
+  border-radius: 20px;
+  color: white;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(4px);
+}
+
+.reroll-question-btn:hover {
+  background: rgba(160, 82, 45, 0.9);
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+}
+
+.instructions {
+  color: #d1d5db;
+  font-size: 16px;
+  margin: 15px 0 0 0;
+  line-height: 1.5;
+}
+
+.selected-tags-area {
+  margin-bottom: 25px;
+}
+
+.selected-tags-area h3 {
+  color: #fbbf24;
+  font-size: 18px;
+  margin: 0 0 15px 0;
+  text-align: center;
+}
+
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  min-height: 60px;
+  align-items: center;
+  background: rgba(0,0,0,0.7);
+  border: 2px solid #fbbf24;
+  border-radius: 8px;
+  padding: 15px;
+  backdrop-filter: blur(4px);
+}
+
+.no-tags {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.selected-tag {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: black;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-size: 14px;
+}
+
+.selected-tag:hover {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  transform: scale(1.05);
+}
+
+.floating-tags-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.floating-tag {
+  position: absolute;
+  background: rgba(127, 29, 29, 0.9);
+  border: 2px solid #fbbf24;
+  border-radius: 25px;
+  color: white;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  animation: float 6s ease-in-out infinite;
+}
+
+.floating-tag:hover {
+  background: rgba(251, 191, 36, 0.9);
+  color: black;
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+.floating-tag.selected {
+  background: rgba(251, 191, 36, 0.9);
+  color: black;
+  border-color: #f59e0b;
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.7);
+}
+
+.floating-tag.disabled {
+  background: rgba(75, 85, 99, 0.6);
+  border-color: #6b7280;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.floating-tag.disabled:hover {
+  background: rgba(75, 85, 99, 0.6);
+  color: #9ca3af;
+  transform: none;
+  box-shadow: none;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-15px) rotate(1deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(-1deg);
+  }
+  75% {
+    transform: translateY(-20px) rotate(0.5deg);
+  }
+}
+
+.controls {
+  margin-bottom: 20px;
+}
+
+.refresh-button {
+  background: rgba(99, 102, 241, 0.9);
+  border: 2px solid #6366f1;
+  border-radius: 25px;
+  color: white;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(4px);
+}
+
+.refresh-button:hover {
+  background: rgba(79, 70, 229, 0.9);
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+}
+
+.error-message {
+  margin: 15px 0;
+  padding: 12px;
+  background: rgba(220, 38, 38, 0.9);
+  border: 2px solid #ef4444;
+  border-radius: 8px;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  backdrop-filter: blur(4px);
+  font-size: 14px;
+}
+
+.continue-section {
+  margin-top: 25px;
+}
+
+.continue-button {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 50%, #1e3a8a 100%);
+  border: 3px solid #fbbf24;
+  border-radius: 8px;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 15px 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(4px);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.continue-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+.continue-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(107, 114, 128, 0.8);
+  border-color: #6b7280;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 28px;
+  }
+
+  .research-question p {
+    font-size: 18px;
+  }
+
+  .floating-tag {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .persona-header {
+    padding: 20px 15px 15px 15px;
+  }
+}

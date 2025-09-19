@@ -1,10 +1,12 @@
 
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import backgroundImage from '../assets/background.webp'
 import { useChatStore } from '../store/chatStore'
 import './ChatPage.css'
 
 const ChatPage = () => {
+  const navigate = useNavigate()
   const {
     messages,
     config,
@@ -14,13 +16,14 @@ const ChatPage = () => {
     hasWon,
     error,
     apiKey,
+    characterName,
     sendUserMessage,
     clearMessages,
     setConfig,
     loadApiKeyFromCookie,
     clearApiKey,
-    generateInitialQuestions,
-    generateFollowUpQuestions
+    generateFollowUpQuestions,
+    initializeChat
   } = useChatStore()
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
@@ -30,12 +33,10 @@ const ChatPage = () => {
     loadApiKeyFromCookie()
   }, [])
 
-  // Generate initial questions when component mounts (if no questions exist)
+  // Initialize chat when component mounts
   useEffect(() => {
-    if (questionOptions.length === 0) {
-      generateInitialQuestions()
-    }
-  }, [questionOptions.length, generateInitialQuestions])
+    initializeChat()
+  }, [])
 
   const handleQuestionSelect = async (optionId: string, questionText: string) => {
     if (isLoading || isGeneratingQuestions) return
@@ -83,14 +84,12 @@ const ChatPage = () => {
       </div>
 
       {/* Floating Back Button */}
-      <button className="floating-button back-button">
-        ←
+      <button
+        className="floating-button back-button"
+        onClick={() => navigate('/persona')}
+      >
+        ← Back to Persona Creation
       </button>
-
-      {/* Timer */}
-      <div className="timer">
-        00:00
-      </div>
 
       {/* Character Icons & Settings */}
       <div className="header-icons">
@@ -132,13 +131,6 @@ const ChatPage = () => {
 
       {/* Main Content Area */}
       <div className="main-content">
-        {/* Character Sprite */}
-        <div className="character-sprite">
-          <div className="character-sprite-icon">
-            🧞‍♂️
-          </div>
-        </div>
-
         {/* Chat Messages Area */}
         <div className="chat-area">
           {/* Scrollable Messages */}
@@ -151,7 +143,7 @@ const ChatPage = () => {
                 <div className="message-content">
                   {/* Sender Label */}
                   <div className={`message-sender ${message.isUser ? 'user' : 'flame'}`}>
-                    {message.sender}
+                    {message.isUser ? 'USER' : characterName.toUpperCase()}
                   </div>
 
                   {/* Message Box */}
