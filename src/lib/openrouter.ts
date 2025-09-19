@@ -39,7 +39,7 @@ class OpenRouterService {
 
   async generateResponse(
     messages: ChatMessage[],
-    model: string = 'deepseek/deepseek-r1-0528'
+    model: string = 'anthropic/claude-sonnet-4'
   ): Promise<string> {
     if (!this.apiKey) {
       throw new Error('API key not set')
@@ -104,13 +104,15 @@ class OpenRouterService {
 
   async answerQuestion(
     persona: string,
+    characterName: string,
     question: string,
     context: string = ''
   ): Promise<string> {
     console.log(`❓ Answering Question for persona: "${persona}"`)
+    console.log(`👤 Character Name: "${characterName}"`)
     console.log(`❓ Question: "${question}"`)
     console.log(`📝 Context: "${context}"`)
-    const systemPrompt = `You are ${persona}. Respond to questions from your perspective and knowledge.
+    const systemPrompt = `You are ${persona}. Your name is ${characterName}. Respond to questions from your perspective and knowledge.
 
 IMPORTANT CONTENT GUIDELINES:
 - Keep all responses appropriate for a PG-13 audience
@@ -127,6 +129,7 @@ IMPORTANT CONTENT GUIDELINES:
 - Many historical characters had limited knowledge of the world beyond their own culture and time period. Avoid anachronisms.
 - Characters may not know modern concepts, technology, or events outside their historical context.
 - If the question is outside your character's knowledge or time period, they might respond in a variety of ways, such as with confusion, curiosity, anger, or deflection.
+- Be brief. Say only about 4 sentences maximum.
 
 ${context ? `Context: ${context}` : ''}`
 
@@ -150,24 +153,32 @@ ${context ? `Context: ${context}` : ''}`
   async evaluateAnswer(
     question: string,
     answer: string,
-    targetTopic: string
+    targetTopic: string,
+    validationCriteria: string[]
   ): Promise<boolean> {
     console.log(`🎯 Evaluating Answer for topic: "${targetTopic}"`)
     console.log(`❓ Question: "${question}"`)
     console.log(`💬 Answer: "${answer}"`)
+    console.log(`📋 Criteria: ${validationCriteria.length} requirements`)
+
+    const criteriaText = validationCriteria.map((criterion, index) => `${index + 1}. ${criterion}`).join('\n')
+
     const messages: ChatMessage[] = [
       {
         role: 'system',
         content: `You are an evaluator. Determine if the given answer adequately addresses the question about "${targetTopic}".
 
+        The answer should meet these specific criteria:
+        ${criteriaText}
+
         Respond with ONLY "yes" or "no" - nothing else.
 
-        Answer "yes" if the response meaningfully addresses the topic.
-        Answer "no" if the response is evasive, off-topic, or doesn't provide substantial information about the topic.`
+        Answer "yes" if the response meaningfully addresses at least 2-3 of the criteria above.
+        Answer "no" if the response is evasive, off-topic, or doesn't address the key requirements.`
       },
       {
         role: 'user',
-        content: `Question: ${question}\nAnswer: ${answer}\n\nDoes this answer adequately address the question about ${targetTopic}?`
+        content: `Question: ${question}\nAnswer: ${answer}\n\nDoes this answer adequately address the question about ${targetTopic} based on the criteria?`
       }
     ]
 
@@ -183,45 +194,15 @@ ${context ? `Context: ${context}` : ''}`
     }
   }
 
-  async generateFollowUp(
-    persona: string,
-    question: string,
-    previousAnswer: string,
-    context: string = ''
-  ): Promise<string> {
-    console.log(`🔄 Generating Follow-up for persona: "${persona}"`)
-    console.log(`❓ Original Question: "${question}"`)
-    console.log(`💬 Previous Answer: "${previousAnswer}"`)
-    const messages: ChatMessage[] = [
-      {
-        role: 'system',
-        content: `You are ${persona}. The human asked you a question and you gave an answer, but it didn't fully address their question.
-        Generate a follow-up response that better addresses their original question. ${context ? `Context: ${context}` : ''}`
-      },
-      {
-        role: 'user',
-        content: `Original question: ${question}`
-      },
-      {
-        role: 'assistant',
-        content: previousAnswer
-      },
-      {
-        role: 'user',
-        content: 'Can you elaborate more on the original question? I need a more complete answer.'
-      }
-    ]
-
-    return this.generateResponse(messages)
-  }
-
   async generateGreeting(
     persona: string,
+    characterName: string,
     context: string = ''
   ): Promise<string> {
     console.log(`👋 Generating Greeting for persona: "${persona}"`)
+    console.log(`👤 Character Name: "${characterName}"`)
     console.log(`📝 Context: "${context}"`)
-    const systemPrompt = `You are ${persona}. Generate a brief, welcoming greeting message to start the conversation.
+    const systemPrompt = `You are ${persona}. Your name is ${characterName}. Generate a brief, welcoming greeting message to start the conversation.
 
 IMPORTANT CONTENT GUIDELINES:
 - Keep the greeting appropriate for a PG-13 audience
@@ -231,6 +212,9 @@ IMPORTANT CONTENT GUIDELINES:
 - Don't "roleplay". Speak plainly, without acting out actions or emotions.
 - Feel free to be exactly as helpful or unhelpful as you like, within the PG-13 guidelines.
 - Don't waffle or say too much. Be direct and to the point.
+- Many historical characters had limited knowledge of the world beyond their own culture and time period. Avoid anachronisms.
+- Characters may not know modern concepts, technology, or events outside their historical context.
+- If the question is outside your character's knowledge or time period, they might respond in a variety of ways, such as with confusion, curiosity, anger, or deflection.
 
 ${context ? `Context: ${context}` : ''}`
 
@@ -251,6 +235,7 @@ ${context ? `Context: ${context}` : ''}`
     return contentFilter.filterContent(response, 2)
   }
 
+
   async generatePersona(
     selectedTags: string[],
     researchQuestion: string,
@@ -258,15 +243,19 @@ ${context ? `Context: ${context}` : ''}`
   ): Promise<{name: string, description: string}> {
     console.log(`🎭 Generating Persona from tags: ${selectedTags.join(', ')}`)
 
-    const systemPrompt = `You are a helpful assistant that creates educational historical personas based on given traits.
+    const systemPrompt = `You are a helpful assistant that creates historical personas based on given traits.
 
-Create a detailed persona for an educational AI character based on these selected traits: ${selectedTags.join(', ')}.
+Create a detailed persona for an AI character based on these selected traits: ${selectedTags.join(', ')}.
 
 IMPORTANT GUIDELINES:
 - Keep the persona appropriate for a PG-13 audience
 - Make them historically accurate and educational
 - Write the description in the format: "a [description] who [background/traits]"
 - Be specific and detailed, not generic
+- If traits conflict, prioritize historical accuracy
+- If you can't create a detailed persona from the traits, make a best-effort guess
+- Make sure the persona matches the traits as closely as possible
+- If the traits clearly point to a specific historical figure, use that figure
 
 Return your response as valid JSON in this exact format:
 {
@@ -319,29 +308,41 @@ Example:
     }
   }
 
-  async generateQuestionContext(
+  async generateQuestionSetup(
     question: string
-  ): Promise<{targetTopic: string, context: string}> {
-    console.log(`🎯 Generating Context for question: "${question}"`)
+  ): Promise<{targetTopic: string, context: string, validationCriteria: string[]}> {
+    console.log(`🎯 Generating Question Setup for: "${question}"`)
 
-    const systemPrompt = `You are an educational content specialist. Given a research question, generate appropriate context information.
+    const systemPrompt = `You are an educational content specialist. Given a research question, generate comprehensive setup information.
 
 For the question: "${question}"
 
 Generate:
 1. A concise target topic (2-4 words) that summarizes what this question is about
 2. A brief educational context (1-2 sentences) that provides background for understanding this topic
+3. Specific validation criteria (3-5 bullet points) that define what constitutes a good answer to this question
 
 Return your response as valid JSON in this exact format:
 {
   "targetTopic": "Brief topic name",
-  "context": "Educational background context for this topic"
+  "context": "Educational background context for this topic",
+  "validationCriteria": [
+    "Specific requirement 1 for a good answer",
+    "Specific requirement 2 for a good answer",
+    "Specific requirement 3 for a good answer"
+  ]
 }
 
 Example:
 {
   "targetTopic": "Microbial Biology",
-  "context": "This explores the relationship between microorganisms and human health, covering beneficial bacteria, harmful pathogens, and the body's immune responses."
+  "context": "This explores the relationship between microorganisms and human health, covering beneficial bacteria, harmful pathogens, and the body's immune responses.",
+  "validationCriteria": [
+    "Explains the difference between beneficial and harmful microorganisms",
+    "Describes how microorganisms interact with the human body",
+    "Mentions specific examples of bacteria, viruses, or other microbes",
+    "Discusses the role of the immune system in responding to microorganisms"
+  ]
 }`
 
     const messages: ChatMessage[] = [
@@ -351,36 +352,22 @@ Example:
       },
       {
         role: 'user',
-        content: `Generate target topic and context for: "${question}"`
+        content: `Generate complete setup for: "${question}"`
       }
     ]
 
-    try {
-      const response = await this.generateResponse(messages)
-      const filteredResponse = contentFilter.filterContent(response, 2)
+    const response = await this.generateResponse(messages)
+    const filteredResponse = contentFilter.filterContent(response, 2)
 
-      console.log(`🔍 Parsing question context JSON:`, filteredResponse)
-      const parsed = JSON.parse(filteredResponse)
+    console.log(`🔍 Parsing question setup JSON:`, filteredResponse)
+    const parsed = JSON.parse(filteredResponse)
 
-      if (!parsed.targetTopic || !parsed.context) {
-        throw new Error('Invalid context format - missing targetTopic or context')
-      }
-
-      console.log(`✨ Generated Context: Topic="${parsed.targetTopic}", Context="${parsed.context}"`)
-      return parsed
-    } catch (parseError) {
-      console.error('❌ Failed to parse question context JSON:', parseError)
-      console.log('🔄 Falling back to simple extraction')
-
-      // Fallback: extract topic from question
-      const topicMatch = question.match(/about\s+(.+?)\?|How\s+do\s+(.+?)\s+/i)
-      const fallbackTopic = topicMatch ? (topicMatch[1] || topicMatch[2]).trim() : 'General Knowledge'
-
-      return {
-        targetTopic: fallbackTopic,
-        context: `This is an educational discussion about ${fallbackTopic.toLowerCase()}.`
-      }
+    if (!parsed.targetTopic || !parsed.context || !parsed.validationCriteria) {
+      throw new Error('Invalid setup format - missing targetTopic, context, or validationCriteria')
     }
+
+    console.log(`✨ Generated Setup: Topic="${parsed.targetTopic}", Context="${parsed.context}", Criteria=${parsed.validationCriteria.length} items`)
+    return parsed
   }
 
   async generateQuestions(
@@ -412,7 +399,7 @@ Example:
         - Varied in approach (personal experience, opinions, explanations, etc.)
         - Engaging and game-like
         - Based on what this persona would know or have experienced
-        - Very short - only 1 sentence each
+        - Very SHORT - only 1 sentence each
         ${chatHistory.length > 0 ? '- Building on the previous conversation naturally' : ''}
 
         Respond with a JSON array in this exact format:

@@ -14,6 +14,7 @@ interface GameConfig {
   question: string
   targetTopic: string
   context?: string
+  validationCriteria?: string[]
 }
 
 interface QuestionOption {
@@ -41,6 +42,7 @@ interface ChatState {
   setCharacterName: (name: string) => void
   addMessage: (message: Omit<ChatMessage, 'id'>) => void
   clearMessages: () => void
+  resetGameState: () => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
   setQuestionOptions: (options: QuestionOption[]) => void
@@ -82,7 +84,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
     persona: 'the Egyptian God, Anubis, who is wise, mysterious, and speaks in riddles.',
     question: "What is the significance of the afterlife in ancient Egyptian culture?",
     targetTopic: 'Ancient Egyptian beliefs about the afterlife',
-    context: 'This is an educational discussion about ancient Egyptian mythology and culture.'
+    context: 'This is an educational discussion about ancient Egyptian mythology and culture.',
+    validationCriteria: [
+      'Explains the importance of the afterlife in ancient Egyptian religion',
+      'Mentions specific Egyptian gods or concepts related to death',
+      'Describes Egyptian burial practices or mummification',
+      'Discusses the journey of the soul after death'
+    ]
   },
   messages: [],
   questionOptions: [],
@@ -138,6 +146,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   clearMessages: () => set({ messages: [], hasWon: false, isInitialized: false, isInitializing: false }),
 
+  resetGameState: () => set({
+    messages: [],
+    questionOptions: [],
+    isLoading: false,
+    isGeneratingQuestions: false,
+    hasWon: false,
+    error: null,
+    isInitialized: false,
+    isInitializing: false
+  }),
+
   setLoading: (loading) => set({ isLoading: loading }),
 
   setError: (error) => set({ error }),
@@ -182,6 +201,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       // Step 1: Get initial answer from persona
       const answer = await openRouterService.answerQuestion(
         state.config.persona,
+        state.characterName,
         message,
         state.config.context
       )
@@ -193,12 +213,17 @@ export const useChatStore = create<ChatState>((set, get) => ({
         isUser: false
       })
 
-      // Step 2: Evaluate if the question was answered
-      const isAnswered = await openRouterService.evaluateAnswer(
-        state.config.question,
-        answer,
-        state.config.targetTopic
-      )
+      // Step 2: Run evaluation and new question generation concurrently
+      const [isAnswered] = await Promise.all([
+        openRouterService.evaluateAnswer(
+          state.config.question,
+          answer,
+          state.config.targetTopic,
+          state.config.validationCriteria || []
+        ),
+        // Generate new questions in parallel since they're independent
+        state.generateFollowUpQuestions()
+      ])
 
       console.log('Question answered adequately:', isAnswered)
 
@@ -206,23 +231,6 @@ export const useChatStore = create<ChatState>((set, get) => ({
       if (isAnswered && !state.hasWon) {
         set({ hasWon: true })
         alert(`🎉 Congratulations! You've successfully learned about ${state.config.targetTopic}!\n\nYou can continue the conversation or start a new topic.`)
-      }
-
-      // Step 3: If not answered adequately, generate follow-up
-      if (!isAnswered) {
-        const followUp = await openRouterService.generateFollowUp(
-          state.config.persona,
-          state.config.question,
-          answer,
-          state.config.context
-        )
-
-        // Add follow-up response
-        state.addMessage({
-          sender: state.characterName.toUpperCase(),
-          text: followUp,
-          isUser: false
-        })
       }
 
     } catch (error) {
@@ -263,11 +271,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
       await state.initializeApiKey()
       set({ isGeneratingQuestions: true, error: null })
 
-      // Convert messages to ChatMessage format for the API
+      // Convert ALL messages to ChatMessage format for the API, including the greeting
       const chatHistory: import('../lib/openrouter').ChatMessage[] = state.messages.map(msg => ({
         role: msg.isUser ? 'user' as const : 'assistant' as const,
         content: msg.text
       }))
+
+      console.log(`🎲 Generating questions with full chat history (${chatHistory.length} messages):`, chatHistory)
 
       const questions = await openRouterService.generateQuestions(
         state.config.persona,
@@ -302,6 +312,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       const [greeting] = await Promise.all([
         openRouterService.generateGreeting(
           state.config.persona,
+          state.characterName,
           state.config.context || ''
         ),
         state.generateInitialQuestions()

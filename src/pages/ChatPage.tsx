@@ -19,6 +19,7 @@ const ChatPage = () => {
     characterName,
     sendUserMessage,
     clearMessages,
+    resetGameState,
     setConfig,
     loadApiKeyFromCookie,
     clearApiKey,
@@ -48,6 +49,12 @@ const ChatPage = () => {
     setTimeout(() => {
       generateFollowUpQuestions()
     }, 1000) // Small delay to let the conversation complete
+  }
+
+  const handleBackToPersonaCreation = () => {
+    // Reset all game state before navigating
+    resetGameState()
+    navigate('/persona')
   }
 
   const handleConfigChange = () => {
@@ -86,7 +93,7 @@ const ChatPage = () => {
       {/* Floating Back Button */}
       <button
         className="floating-button back-button"
-        onClick={() => navigate('/persona')}
+        onClick={handleBackToPersonaCreation}
       >
         ← Back to Persona Creation
       </button>

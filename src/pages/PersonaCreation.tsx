@@ -96,67 +96,119 @@ const PERSONA_TAG_CATEGORIES = {
   ]
 }
 
-// Educational question pool across various subjects
+// Educational question pool across various subjects - targeting teenage audience with engaging, specific questions
 const EDUCATIONAL_QUESTIONS = [
-  // Science & Biology
-  "How do microorganisms affect human health and disease?",
-  "What role do plants play in Earth's ecosystem?",
-  "How do genetic mutations drive evolution?",
-  "What causes different blood types in humans?",
-  "How do vaccines work to prevent disease?",
-  "What happens during photosynthesis?",
-  "How do antibiotics fight bacterial infections?",
-  "What makes viruses different from bacteria?",
+  // Science & Biology - Fun & Specific
+  "Why do we get brain freeze when eating ice cream too fast?",
+  "What happens to your body when you're scared by a horror movie?",
+  "How do cats always land on their feet?",
+  "Why do onions make you cry when you cut them?",
+  "What makes some people allergic to peanuts but not others?",
+  "How do energy drinks affect your brain and body?",
+  "Why do teenagers need more sleep than adults?",
+  "What causes morning breath and how does brushing help?",
+  "How do vaccines actually train your immune system?",
+  "Why do some people get motion sick on roller coasters?",
+  "What makes your stomach growl when you're hungry?",
+  "How do painkillers know where the pain is?",
+  "Why can't you tickle yourself?",
+  "What happens in your brain when you have déjà vu?",
 
-  // History & Wars
-  "Who was responsible for starting World War I?",
-  "What were the main causes of World War II?",
-  "How did the Black Death change European society?",
-  "What led to the fall of the Roman Empire?",
-  "Why did the American Civil War begin?",
-  "What caused the French Revolution?",
-  "How did the Industrial Revolution change daily life?",
-  "What were the consequences of European colonization?",
+  // History & Wars - Dramatic & Specific
+  "What was it really like to live through the London Blitz?",
+  "How did teenagers survive during the Great Depression?",
+  "What was the most brutal medieval torture device?",
+  "How did people react when they first heard about the Titanic sinking?",
+  "What was daily life like for a Viking warrior?",
+  "How did people communicate during World War II without phones?",
+  "What was the deadliest day in human history?",
+  "How did the Black Death actually kill people?",
+  "What was it like to be a teenager during the Salem Witch Trials?",
+  "How did gladiators really fight in ancient Rome?",
+  "What was the worst prison in history?",
+  "How did people survive the 1906 San Francisco earthquake?",
+  "What was it like to witness the first atomic bomb test?",
+  "How did pirates really live on their ships?",
 
-  // Physics & Chemistry
-  "How does gravity work?",
-  "What makes atoms stick together?",
-  "Why do some materials conduct electricity?",
-  "How do magnets create magnetic fields?",
-  "What causes different states of matter?",
-  "How does nuclear energy work?",
-  "What makes light behave like both a wave and particle?",
-  "How do chemical reactions occur?",
+  // Physics & Chemistry - Mind-blowing & Relatable
+  "Why does time slow down when you're bored?",
+  "What would happen if you could run at the speed of light?",
+  "How do microwaves actually heat up your food?",
+  "Why do mirrors flip things left-to-right but not up-down?",
+  "What happens if you drop a penny from the Empire State Building?",
+  "How do fireworks create different colors?",
+  "Why does hot water freeze faster than cold water sometimes?",
+  "What makes glow sticks glow?",
+  "How do noise-canceling headphones work?",
+  "Why do things look different colors under different lights?",
+  "What would happen if gravity suddenly stopped working?",
+  "How do smartphones know which way you're holding them?",
+  "Why does your voice sound different on recordings?",
+  "What makes dry ice so cold and smoky?",
 
-  // Geography & Environment
-  "What causes climate change?",
-  "How do mountains form?",
-  "Why do earthquakes happen?",
-  "What creates ocean currents?",
-  "How do rivers shape landscapes?",
-  "What causes different weather patterns?",
-  "How do ecosystems maintain balance?",
-  "What factors determine regional climates?",
+  // Geography & Environment - Extreme & Fascinating
+  "What's the most dangerous place on Earth to visit?",
+  "How do people survive in Antarctica?",
+  "What would happen if all the ice caps melted tomorrow?",
+  "Why are some places on Earth hotter than others?",
+  "How do hurricanes get their names?",
+  "What's at the bottom of the deepest ocean trench?",
+  "How do animals know when natural disasters are coming?",
+  "What causes those crazy Northern Lights?",
+  "Why don't we fall off the Earth if it's spinning?",
+  "How do deserts form in the middle of nowhere?",
+  "What makes some volcanoes more explosive than others?",
+  "How do islands just appear in the ocean?",
+  "Why is the Dead Sea so salty you can't sink?",
+  "What happens when lightning strikes the ocean?",
 
-  // Technology & Innovation
-  "How did the printing press change society?",
-  "What led to the development of computers?",
-  "How do airplanes stay in the air?",
-  "What makes the internet work?",
-  "How did electricity transform civilization?",
-  "What drove the space race?",
-  "How do modern communications work?",
-  "What innovations shaped the modern world?",
+  // Technology & Innovation - Modern & Mind-blowing
+  "How does your phone know exactly where you are?",
+  "What happens to all your deleted photos and messages?",
+  "How do video games create such realistic graphics?",
+  "Why can't we just download more internet speed?",
+  "How do electric cars actually work?",
+  "What makes some passwords stronger than others?",
+  "How do 3D printers create objects from nothing?",
+  "Why do some apps drain your battery faster?",
+  "How does Bluetooth know which device to connect to?",
+  "What happens inside a computer when it crashes?",
+  "How do streaming services know what you want to watch?",
+  "Why can't we just make infinite clean energy?",
+  "How do robots learn to walk and move?",
+  "What makes virtual reality feel so real?",
 
-  // Social Sciences
-  "How do languages develop and change?",
-  "What creates cultural differences between societies?",
-  "How do economic systems work?",
-  "What factors influence human behavior?",
-  "How do societies organize themselves?",
-  "What role does education play in civilization?",
-  "How do laws and governments develop?",
-  "What drives human migration patterns?"
+  // Social Sciences & Psychology - Relatable & Thought-provoking
+  "Why do embarrassing memories keep you awake at night?",
+  "How do memes spread so fast across the internet?",
+  "Why do teenagers and parents argue so much?",
+  "What makes some people naturally popular?",
+  "How do cults convince people to join them?",
+  "Why do people believe in conspiracy theories?",
+  "What makes a song get stuck in your head?",
+  "How do influencers actually influence people?",
+  "Why do people act differently online than in person?",
+  "What causes stage fright and performance anxiety?",
+  "How do advertisements manipulate what you want to buy?",
+  "Why do people choose different friend groups?",
+  "What makes some videos go viral while others don't?",
+  "How do dictators convince entire countries to follow them?",
+
+  // Pop Culture & Modern Life - Super Engaging
+  "How do movie studios create realistic explosions without killing actors?",
+  "What happens to your brain when you binge-watch a series?",
+  "How do artists make music that gives you chills?",
+  "Why do some foods become trendy on social media?",
+  "How do special effects make actors look like aliens?",
+  "What makes a horror movie actually scary?",
+  "How do theme parks design roller coasters that don't kill you?",
+  "Why do some fashion trends become popular while others flop?",
+  "How do magic tricks fool your brain?",
+  "What makes certain colors look good together?",
+  "How do video game developers create addictive gameplay?",
+  "Why do some celebrities become famous while others don't?",
+  "How do makeup artists completely transform actors?",
+  "What makes a joke actually funny to different people?"
 ]
 
 // Function to get balanced selection from all categories
@@ -258,8 +310,8 @@ const PersonaCreation = () => {
 
       // Generate context and persona concurrently to save time
       console.log(`📚 Generating context and persona concurrently for question: "${currentQuestion}"`)
-      const [questionContext, personaData] = await Promise.all([
-        openRouterService.generateQuestionContext(currentQuestion),
+      const [questionSetup, personaData] = await Promise.all([
+        openRouterService.generateQuestionSetup(currentQuestion),
         openRouterService.generatePersona(
           selectedTags,
           currentQuestion,
@@ -268,13 +320,14 @@ const PersonaCreation = () => {
       ])
 
       console.log(`🎭 Received Persona Data:`, personaData)
-      console.log(`📚 Generated Question Context:`, questionContext)
+      console.log(`📚 Generated Question Setup:`, questionSetup)
 
       // Update the config with all the generated data
       setConfig({
         question: currentQuestion,
-        targetTopic: questionContext.targetTopic,
-        context: questionContext.context,
+        targetTopic: questionSetup.targetTopic,
+        context: questionSetup.context,
+        validationCriteria: questionSetup.validationCriteria,
         persona: personaData.description.trim()
       })
       setCharacterName(personaData.name)
