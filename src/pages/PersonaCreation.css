@@ -248,6 +248,30 @@
   margin-right: 8px;
 }
 
+.debug-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+  background: rgba(139, 69, 19, 0.8);
+  border: 1px solid #fbbf24;
+  border-radius: 4px;
+  color: #fbbf24;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(4px);
+  opacity: 0.7;
+}
+
+.debug-button:hover {
+  opacity: 1;
+  background: rgba(160, 82, 45, 0.9);
+  transform: scale(1.05);
+}
+
 .controls {
   margin-bottom: 20px;
 }

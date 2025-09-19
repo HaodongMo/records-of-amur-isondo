@@ -343,6 +343,37 @@ const PersonaCreation = () => {
     }
   }
 
+  const handleDebugMode = () => {
+    const question = prompt('Enter debug question:')
+    if (!question) return
+
+    const persona = prompt('Enter debug persona (e.g., "a wise Egyptian priest who served in ancient temples"):')
+    if (!persona) return
+
+    const characterName = prompt('Enter character name:')
+    if (!characterName) return
+
+    const targetTopic = prompt('Enter target topic:')
+    if (!targetTopic) return
+
+    // Set the configuration directly
+    setConfig({
+      question: question,
+      targetTopic: targetTopic,
+      context: `This is a debug session about ${targetTopic}.`,
+      validationCriteria: [
+        `Discusses ${targetTopic}`,
+        'Provides relevant information',
+        'Engages with the topic meaningfully'
+      ],
+      persona: persona
+    })
+    setCharacterName(characterName)
+
+    // Navigate to chat page
+    navigate('/chat')
+  }
+
   return (
     <div className="persona-creation">
       {/* Background Image */}
@@ -355,6 +386,15 @@ const PersonaCreation = () => {
       <div className="texture-overlay">
         <div className="slanted-bar" />
       </div>
+
+      {/* Debug Button */}
+      <button
+        className="debug-button"
+        onClick={handleDebugMode}
+        title="Debug: Enter custom question and persona"
+      >
+        DEBUG
+      </button>
 
       {/* Central Content Area */}
       <div className="central-content">
