@@ -17,6 +17,7 @@ const ChatPage = () => {
     error,
     apiKey,
     characterName,
+    hasCustomPersona,
     sendUserMessage,
     clearMessages,
     resetGameState,
@@ -29,15 +30,26 @@ const ChatPage = () => {
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
 
+  // Check if user has a custom persona, redirect to creation if not
+  useEffect(() => {
+    if (!hasCustomPersona) {
+      console.log('No custom persona found, redirecting to persona creation')
+      navigate('/persona')
+      return
+    }
+  }, [hasCustomPersona, navigate])
+
   // Load API key from cookie and generate initial questions on component mount
   useEffect(() => {
     loadApiKeyFromCookie()
   }, [])
 
-  // Initialize chat when component mounts
+  // Initialize chat when component mounts (only if we have a custom persona)
   useEffect(() => {
-    initializeChat()
-  }, [])
+    if (hasCustomPersona) {
+      initializeChat()
+    }
+  }, [hasCustomPersona])
 
   const handleQuestionSelect = async (optionId: string, questionText: string) => {
     if (isLoading || isGeneratingQuestions) return
@@ -45,16 +57,20 @@ const ChatPage = () => {
     setSelectedOption(optionId)
     await sendUserMessage(questionText)
 
-    // Generate new follow-up questions after the conversation
-    setTimeout(() => {
-      generateFollowUpQuestions()
-    }, 1000) // Small delay to let the conversation complete
+    // Clear selection after message is sent (new questions will be generated automatically)
+    setSelectedOption(null)
   }
 
   const handleBackToPersonaCreation = () => {
     // Reset all game state before navigating
     resetGameState()
     navigate('/persona')
+  }
+
+  const handleGenerateNewQuestions = () => {
+    // Clear selected option when generating new questions
+    setSelectedOption(null)
+    generateFollowUpQuestions()
   }
 
   const handleConfigChange = () => {
@@ -116,7 +132,7 @@ const ChatPage = () => {
           🗑️ Clear
         </button>
         <button
-          onClick={generateFollowUpQuestions}
+          onClick={handleGenerateNewQuestions}
           disabled={isGeneratingQuestions || isLoading}
           className="control-button new-questions"
         >
@@ -198,7 +214,7 @@ const ChatPage = () => {
               )}
 
               <div className="questions-list">
-                {questionOptions.length > 0 ? questionOptions.map((option) => (
+                {!isGeneratingQuestions && questionOptions.length > 0 ? questionOptions.map((option) => (
                   <button
                     key={option.id}
                     onClick={() => handleQuestionSelect(option.id, option.text)}

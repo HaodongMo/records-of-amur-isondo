@@ -34,6 +34,7 @@ interface ChatState {
   isInitialized: boolean
   isInitializing: boolean
   characterName: string
+  hasCustomPersona: boolean
 
   // Actions
   setApiKey: (key: string) => void
@@ -81,16 +82,11 @@ const extractCharacterName = (persona: string): string => {
 export const useChatStore = create<ChatState>((set, get) => ({
   apiKey: null,
   config: {
-    persona: 'the Egyptian God, Anubis, who is wise, mysterious, and speaks in riddles.',
-    question: "What is the significance of the afterlife in ancient Egyptian culture?",
-    targetTopic: 'Ancient Egyptian beliefs about the afterlife',
-    context: 'This is an educational discussion about ancient Egyptian mythology and culture.',
-    validationCriteria: [
-      'Explains the importance of the afterlife in ancient Egyptian religion',
-      'Mentions specific Egyptian gods or concepts related to death',
-      'Describes Egyptian burial practices or mummification',
-      'Discusses the journey of the soul after death'
-    ]
+    persona: '',
+    question: '',
+    targetTopic: '',
+    context: '',
+    validationCriteria: []
   },
   messages: [],
   questionOptions: [],
@@ -100,7 +96,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   error: null,
   isInitialized: false,
   isInitializing: false,
-  characterName: 'Anubis',
+  characterName: '',
+  hasCustomPersona: false,
 
   setApiKey: (key) => {
     set({ apiKey: key })
@@ -134,7 +131,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     return {
       config: updatedConfig,
-      characterName
+      characterName,
+      hasCustomPersona: true
     }
   }),
 
@@ -147,6 +145,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
   clearMessages: () => set({ messages: [], hasWon: false, isInitialized: false, isInitializing: false }),
 
   resetGameState: () => set({
+    config: {
+      persona: '',
+      question: '',
+      targetTopic: '',
+      context: '',
+      validationCriteria: []
+    },
     messages: [],
     questionOptions: [],
     isLoading: false,
@@ -154,7 +159,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
     hasWon: false,
     error: null,
     isInitialized: false,
-    isInitializing: false
+    isInitializing: false,
+    characterName: '',
+    hasCustomPersona: false
   }),
 
   setLoading: (loading) => set({ isLoading: loading }),
@@ -221,7 +228,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           state.config.targetTopic,
           state.config.validationCriteria || []
         ),
-        // Generate new questions in parallel since they're independent
+        // Generate new follow-up questions based on the conversation
         state.generateFollowUpQuestions()
       ])
 
@@ -306,17 +313,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ isInitializing: true })
       await state.initializeApiKey()
 
-      console.log('Starting initialization - generating greeting and questions...')
+      console.log('Starting initialization - generating greeting...')
 
-      // Generate greeting and questions in parallel to save time
-      const [greeting] = await Promise.all([
-        openRouterService.generateGreeting(
-          state.config.persona,
-          state.characterName,
-          state.config.context || ''
-        ),
-        state.generateInitialQuestions()
-      ])
+      // Generate only the greeting on initialization
+      const greeting = await openRouterService.generateGreeting(
+        state.config.persona,
+        state.characterName,
+        state.config.context || ''
+      )
 
       console.log('Initialization complete - adding greeting message')
 
@@ -326,6 +330,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
         text: greeting,
         isUser: false
       })
+
+      // Generate initial questions after greeting is added
+      await state.generateInitialQuestions()
 
       // Mark as initialized only AFTER all API calls succeed
       set({ isInitialized: true, isInitializing: false })

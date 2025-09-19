@@ -119,8 +119,7 @@
 
 .control-button {
   background: rgba(0,0,0,0.7);
-  border-top: 2px solid #fbbf24;
-  border-bottom: 2px solid #fbbf24;
+  border: 2px solid #fbbf24;
   border-radius: 8px;
   color: #fbbf24;
   font-size: 14px;

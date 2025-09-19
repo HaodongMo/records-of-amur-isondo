@@ -413,6 +413,7 @@ const PersonaCreation = () => {
             onClick={generatePersona}
             disabled={isGenerating || selectedTags.length === 0}
           >
+            {isGenerating && <div className="spinner"></div>}
             {isGenerating ? 'Creating Your Guide...' : 'Continue to Chat'}
           </button>
         </div>
