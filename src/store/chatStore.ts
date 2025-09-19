@@ -222,8 +222,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
       set({ isGeneratingQuestions: true, error: null })
 
       // Convert messages to ChatMessage format for the API
-      const chatHistory = state.messages.map(msg => ({
-        role: msg.isUser ? 'user' : 'assistant' as const,
+      const chatHistory: import('../lib/openrouter').ChatMessage[] = state.messages.map(msg => ({
+        role: msg.isUser ? 'user' as const : 'assistant' as const,
         content: msg.text
       }))
 
