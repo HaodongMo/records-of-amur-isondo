@@ -8,7 +8,11 @@
       "Bash(npm run dev:*)",
       "Bash(npx tailwindcss init:*)",
       "Bash(npm run build:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(npm run type-check:*)",
+      "Bash(node:*)",
+      "Bash(nvm:*)",
+      "Bash(npm --version)",
+      "Bash(where node)"
     ],
     "deny": [],
     "ask": []

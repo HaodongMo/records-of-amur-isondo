@@ -123,7 +123,7 @@ const getBalancedRandomTags = (totalCount: number = 20): string[] => {
 const PersonaCreation = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { config, setConfig, setCharacterName, setCurrentLevelId, loadApiKeyFromCookie } = useChatStore()
+  const { setConfig, setCharacterName, setCurrentLevelId, loadApiKeyFromCookie } = useChatStore()
   const { getLevel } = useGameStore()
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [displayTags, setDisplayTags] = useState<string[]>([])

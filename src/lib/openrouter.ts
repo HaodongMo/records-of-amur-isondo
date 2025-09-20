@@ -240,8 +240,8 @@ ${context ? `Context: ${context}` : ''}`
 
   async generatePersona(
     selectedTags: string[],
-    researchQuestion: string,
-    targetTopic: string
+    _researchQuestion: string,
+    _targetTopic: string
   ): Promise<{name: string, description: string}> {
     console.log(`🎭 Generating Persona from tags: ${selectedTags.join(', ')}`)
 
