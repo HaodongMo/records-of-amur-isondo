@@ -225,8 +225,8 @@ const PersonaCreation = () => {
       setConfig({
         question: currentLevel.question,
         targetTopic: currentLevel.targetTopic,
-        context: currentLevel.context || `A discussion about ${currentLevel.targetTopic}.`,
-        validationCriteria: currentLevel.validationCriteria || [
+        context: `A discussion about ${currentLevel.targetTopic}.`,
+        validationCriteria: [
           `Discusses ${currentLevel.targetTopic}`,
           'Provides relevant information',
           'Engages meaningfully with the topic'
