@@ -300,70 +300,65 @@ const ChatPage = () => {
 
               {/* Victory Display */}
               {hasWon ? (
-                <div className="victory-content">
-                  <div className="victory-message">
-                    🎉 Congratulations! You've successfully mastered:
-                    <div className="topic-highlight">
-                      {config.targetTopic}
+                <div className="loading-indicator victory">
+                  <div className="victory-content">
+                    <div className="victory-text">
+                      🎉 Congratulations! You've mastered <strong>{config.targetTopic}</strong>!
+                      {completedLevels.length === 5 && hasUndoAbility && (
+                        <div className="unlock-note">
+                          🎊 New Ability Unlocked: Undo button! 🎊
+                        </div>
+                      )}
                     </div>
-                    {completedLevels.length === 5 && hasUndoAbility && (
-                      <div className="unlock-message">
-                        🎊 <strong>New Ability Unlocked!</strong> 🎊
-                        <br />
-                        You can now use the <strong>Undo</strong> button in conversations!
-                      </div>
-                    )}
+                    <button
+                      onClick={handleGenerateNewQuestions}
+                      disabled={isGeneratingQuestions || isLoading}
+                      className="victory-continue-button"
+                    >
+                      Continue Conversation
+                    </button>
                   </div>
-                  <button
-                    onClick={handleGenerateNewQuestions}
-                    disabled={isGeneratingQuestions || isLoading}
-                    className="continue-conversation-button"
-                  >
-                    Continue Conversation
-                  </button>
                 </div>
               ) : (
                 <>
-                  {/* Loading Indicators */}
-                  {isLoading && (
-                    <div className="loading-indicator thinking">
-                      🧞‍♂️ Thinking...
-                    </div>
-                  )}
-
-                  {isInitializing && (
-                    <div className="loading-indicator generating">
-                      🧞‍♂️ Summoning your guide and preparing questions...
-                    </div>
-                  )}
-
-                  {isGeneratingQuestions && !isInitializing && (
-                    <div className="loading-indicator generating">
-                      🎲 Generating new questions...
-                    </div>
-                  )}
-
-                  <div className="questions-list">
-                    {!isGeneratingQuestions && !isInitializing && questionOptions.length > 0 ? questionOptions.map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() => handleQuestionSelect(option.id, option.text)}
-                        disabled={isLoading || isGeneratingQuestions || isInitializing}
-                        className={`question-button ${selectedOption === option.id ? 'selected' : ''}`}
-                      >
-                        <div className="question-id">
-                          {option.id}
+                  {/* Unified Loading Indicator */}
+                  {(isLoading || isInitializing || isGeneratingQuestions) ? (
+                    <div className="loading-indicator unified">
+                      <div className="loading-content">
+                        <div className="throbber"></div>
+                        <div className="loading-text">
+                          {isInitializing
+                            ? "🧞‍♂️ Summoning your guide and preparing questions..."
+                            : isGeneratingQuestions
+                            ? "🎲 Generating new questions..."
+                            : "🧞‍♂️ Thinking..."
+                          }
                         </div>
-                        <div className="question-text">
-                          {option.text}
-                        </div>
-                      </button>
-                    )) : !isGeneratingQuestions && !isInitializing && (
-                      <div className="no-questions">
-                        No questions available. Click "🎲 New Q's" to generate some!
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="questions-list">
+                      {questionOptions.length > 0 ? questionOptions.map((option) => (
+                        <button
+                          key={option.id}
+                          onClick={() => handleQuestionSelect(option.id, option.text)}
+                          disabled={isLoading || isGeneratingQuestions || isInitializing}
+                          className={`question-button ${selectedOption === option.id ? 'selected' : ''}`}
+                        >
+                          <div className="question-id">
+                            {option.id}
+                          </div>
+                          <div className="question-text">
+                            {option.text}
+                          </div>
+                        </button>
+                      )) : (
+                        <div className="no-questions">
+                          No questions available. Click "🎲 New Q's" to generate some!
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </div>

@@ -297,7 +297,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     try {
       await state.initializeApiKey()
-      set({ isGeneratingQuestions: true, error: null })
+      set({ isGeneratingQuestions: true, error: null, hasWon: false })
 
       // Convert ALL messages to ChatMessage format for the API, including the greeting
       const chatHistory: import('../lib/openrouter').ChatMessage[] = state.messages.map(msg => ({
