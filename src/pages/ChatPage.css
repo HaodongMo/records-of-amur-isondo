@@ -49,6 +49,7 @@
   text-align: center;
 }
 
+
 .question-title h1 {
   font-size: 32px;
   font-weight: bold;
@@ -107,14 +108,22 @@
   gap: 8px;
 }
 
-.status-icon {
-  font-size: 12px;
-  color: #22c55e;
-}
 
 .trophy-icon {
   font-size: 16px;
   color: #fbbf24;
+}
+
+.level-indicator {
+  background: rgba(251, 191, 36, 0.9);
+  color: black;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
 }
 
 .control-button {
@@ -137,6 +146,18 @@
   background: rgba(59, 130, 246, 0.7);
   border-color: #3b82f6;
   color: #ffffff;
+}
+
+
+.control-button.levels {
+  background: rgba(251, 191, 36, 0.7);
+  border-color: #fbbf24;
+  color: black;
+}
+
+.control-button.levels:hover {
+  background: rgba(245, 158, 11, 0.8);
+  box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);
 }
 
 .control-button.danger {

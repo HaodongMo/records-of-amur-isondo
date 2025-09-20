@@ -130,6 +130,7 @@ IMPORTANT CONTENT GUIDELINES:
 - Characters may not know modern concepts, technology, or events outside their historical context.
 - If the question is outside your character's knowledge or time period, they might respond in a variety of ways, such as with confusion, curiosity, anger, or deflection.
 - Be brief. Say only about 4 sentences maximum.
+- Represent your character's historical perspective accurately. You are ${characterName}, not an AI.
 
 ${context ? `Context: ${context}` : ''}`
 
@@ -215,6 +216,7 @@ IMPORTANT CONTENT GUIDELINES:
 - Many historical characters had limited knowledge of the world beyond their own culture and time period. Avoid anachronisms.
 - Characters may not know modern concepts, technology, or events outside their historical context.
 - If the question is outside your character's knowledge or time period, they might respond in a variety of ways, such as with confusion, curiosity, anger, or deflection.
+- Represent your character's historical perspective accurately. You are ${characterName}, not an AI.
 
 ${context ? `Context: ${context}` : ''}`
 
@@ -256,6 +258,8 @@ IMPORTANT GUIDELINES:
 - If you can't create a detailed persona from the traits, make a best-effort guess
 - Make sure the persona matches the traits as closely as possible
 - If the traits clearly point to a specific historical figure, use that figure
+- Think this one through! Give clever combinations of traits full consideration. If there are any interesting or unusual combinations, embrace them.
+- Try and think of amusing or unexpected personas that still make sense.
 
 Return your response as valid JSON in this exact format:
 {
@@ -374,13 +378,25 @@ Example:
     persona: string,
     context: string,
     chatHistory: ChatMessage[] = [],
-    targetTopic: string = ''
+    targetTopic: string = '',
+    researchQuestion: string = ''
   ): Promise<{ id: string; text: string }[]> {
     console.log(`🎲 Generating Questions for persona: "${persona}"`)
     console.log(`🎯 Target Topic: "${targetTopic}"`)
     console.log(`💭 Chat History Length: ${chatHistory.length} messages`)
+
+    // Count user messages (turns) to determine if we should include research question
+    const userTurns = chatHistory.filter(msg => msg.role === 'user').length
+    const shouldIncludeResearchQuestion = userTurns >= 5 && researchQuestion
+
+    console.log(`🔢 User turns: ${userTurns}, Include research question: ${shouldIncludeResearchQuestion}`)
+
     const historyContext = chatHistory.length > 0
       ? `\n\nChat history:\n${chatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}`
+      : ''
+
+    const researchQuestionGuidance = shouldIncludeResearchQuestion
+      ? `\n\nIMPORTANT: The player has been talking for ${userTurns} turns. They need to answer this research question: "${researchQuestion}"\nMake at least one of the questions directly help them answer this research question about ${targetTopic}.`
       : ''
 
     const messages: ChatMessage[] = [
@@ -391,6 +407,7 @@ Example:
         The player is talking to ${persona}.
         ${context ? `Context: ${context}` : ''}
         ${historyContext}
+        ${researchQuestionGuidance}
 
         Generate exactly 3 diverse, thought-provoking questions that would be interesting to ask this persona.
 
@@ -401,6 +418,7 @@ Example:
         - Based on what this persona would know or have experienced
         - Very SHORT - only 1 sentence each
         ${chatHistory.length > 0 ? '- Building on the previous conversation naturally' : ''}
+        ${shouldIncludeResearchQuestion ? `- At least one question should guide toward answering: "${researchQuestion}"` : ''}
 
         Respond with a JSON array in this exact format:
         [

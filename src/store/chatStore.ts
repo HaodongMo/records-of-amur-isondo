@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import Cookies from 'js-cookie'
 import { openRouterService } from '../lib/openrouter'
+import useGameStore from './gameStore'
 
 interface ChatMessage {
   id: number
@@ -35,12 +36,14 @@ interface ChatState {
   isInitializing: boolean
   characterName: string
   hasCustomPersona: boolean
+  currentLevelId: string | null
 
   // Actions
   setApiKey: (key: string) => void
   clearApiKey: () => void
   setConfig: (config: Partial<GameConfig>) => void
   setCharacterName: (name: string) => void
+  setCurrentLevelId: (levelId: string | null) => void
   addMessage: (message: Omit<ChatMessage, 'id'>) => void
   clearMessages: () => void
   resetGameState: () => void
@@ -55,6 +58,7 @@ interface ChatState {
   loadApiKeyFromCookie: () => void
   generateInitialQuestions: () => Promise<void>
   generateFollowUpQuestions: () => Promise<void>
+  undoLastTurn: () => Promise<void>
 }
 
 const API_KEY_COOKIE = 'openrouter_api_key'
@@ -98,6 +102,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isInitializing: false,
   characterName: '',
   hasCustomPersona: false,
+  currentLevelId: null,
 
   setApiKey: (key) => {
     set({ apiKey: key })
@@ -138,6 +143,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   setCharacterName: (name: string) => set({ characterName: name }),
 
+  setCurrentLevelId: (levelId: string | null) => set({ currentLevelId: levelId }),
+
   addMessage: (message) => set((state) => ({
     messages: [...state.messages, { ...message, id: Date.now() }]
   })),
@@ -161,7 +168,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
     isInitialized: false,
     isInitializing: false,
     characterName: '',
-    hasCustomPersona: false
+    hasCustomPersona: false,
+    currentLevelId: null
   }),
 
   setLoading: (loading) => set({ isLoading: loading }),
@@ -237,7 +245,19 @@ export const useChatStore = create<ChatState>((set, get) => ({
       // Check for win condition
       if (isAnswered && !state.hasWon) {
         set({ hasWon: true })
-        alert(`🎉 Congratulations! You've successfully learned about ${state.config.targetTopic}!\n\nYou can continue the conversation or start a new topic.`)
+
+        // If we're in a level, mark it as completed
+        if (state.currentLevelId) {
+          const gameStore = useGameStore.getState()
+          gameStore.completeLevel(state.currentLevelId)
+          console.log(`🏆 Level completed: ${state.currentLevelId}`)
+        }
+
+        // For levels, the ChatPage will navigate to victory screen automatically
+        // For random mode, show the alert
+        if (!state.currentLevelId) {
+          alert(`🎉 Congratulations! You've successfully learned about ${state.config.targetTopic}!\n\nYou can continue the conversation or start a new topic.`)
+        }
       }
 
     } catch (error) {
@@ -259,7 +279,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         state.config.persona,
         state.config.context || '',
         [],
-        state.config.targetTopic
+        state.config.targetTopic,
+        state.config.question
       )
 
       state.setQuestionOptions(questions)
@@ -290,7 +311,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
         state.config.persona,
         state.config.context || '',
         chatHistory,
-        state.config.targetTopic
+        state.config.targetTopic,
+        state.config.question
       )
 
       state.setQuestionOptions(questions)
@@ -341,6 +363,59 @@ export const useChatStore = create<ChatState>((set, get) => ({
       console.error('Error initializing chat:', error)
       state.setError(error instanceof Error ? error.message : 'Failed to initialize chat')
       set({ isInitializing: false })
+    }
+  },
+
+  undoLastTurn: async () => {
+    const state = get()
+
+    // Can't undo if there are no messages or only the greeting
+    if (state.messages.length <= 1) {
+      console.log('Cannot undo: no conversation turns to undo')
+      return
+    }
+
+    try {
+      set({ isGeneratingQuestions: true, error: null })
+
+      // Find the last user message and remove it along with any AI responses after it
+      const messages = [...state.messages]
+      let lastUserIndex = -1
+
+      // Find the last user message (excluding the greeting)
+      for (let i = messages.length - 1; i >= 0; i--) {
+        if (messages[i].isUser) {
+          lastUserIndex = i
+          break
+        }
+      }
+
+      if (lastUserIndex === -1) {
+        console.log('Cannot undo: no user messages found')
+        return
+      }
+
+      // Remove all messages from the last user message onwards
+      const updatedMessages = messages.slice(0, lastUserIndex)
+
+      // Update state with the trimmed messages
+      set({ messages: updatedMessages })
+
+      // Reset win condition if it was achieved
+      if (state.hasWon) {
+        set({ hasWon: false })
+      }
+
+      // Generate new questions based on the updated conversation history
+      await state.generateFollowUpQuestions()
+
+      console.log(`Undid conversation turn. Messages reduced from ${messages.length} to ${updatedMessages.length}`)
+
+    } catch (error) {
+      console.error('Error undoing last turn:', error)
+      state.setError(error instanceof Error ? error.message : 'Failed to undo last turn')
+    } finally {
+      set({ isGeneratingQuestions: false })
     }
   }
 }))

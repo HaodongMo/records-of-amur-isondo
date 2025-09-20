@@ -3,8 +3,13 @@ export interface GameLevel {
   title: string
   description: string
   question: string
-  unlocked: boolean
-  completed: boolean
+  targetTopic: string
+  persona: string
+  context?: string
+  validationCriteria?: string[]
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  unlockAfter?: string // ID of level that must be completed to unlock this one
+  category: 'introduction' | 'history' | 'science' | 'philosophy' | 'literature' | 'technology'
 }
 
 export interface PersonaTag {

@@ -17,12 +17,14 @@ const HomePage = () => {
             Welcome to the educational AI game where you'll learn about AI as simulators
             by summoning different spirits to help answer questions.
           </p>
-          <button
-            onClick={() => navigate('/persona')}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors"
-          >
-            Begin Your Journey
-          </button>
+          <div className="space-y-4">
+            <button
+              onClick={() => navigate('/levels')}
+              className="bg-amber-600 hover:bg-amber-700 text-black font-bold py-3 px-6 rounded-lg text-lg transition-colors"
+            >
+              Start Learning
+            </button>
+          </div>
         </div>
       </div>
     </div>

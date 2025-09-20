@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import backgroundImage from '../assets/background.webp'
 import { useChatStore } from '../store/chatStore'
+import useGameStore from '../store/gameStore'
 import './ChatPage.css'
 
 const ChatPage = () => {
@@ -13,11 +14,13 @@ const ChatPage = () => {
     questionOptions,
     isLoading,
     isGeneratingQuestions,
+    isInitializing,
     hasWon,
     error,
     apiKey,
     characterName,
     hasCustomPersona,
+    currentLevelId,
     sendUserMessage,
     clearMessages,
     resetGameState,
@@ -25,8 +28,15 @@ const ChatPage = () => {
     loadApiKeyFromCookie,
     clearApiKey,
     generateFollowUpQuestions,
-    initializeChat
+    initializeChat,
+    undoLastTurn
   } = useChatStore()
+
+  const { getLevel, levels } = useGameStore()
+
+  // Get current level info if we're in level mode
+  const currentLevel = currentLevelId ? getLevel(currentLevelId) : null
+  const currentLevelNumber = currentLevel ? levels.findIndex(level => level.id === currentLevel.id) + 1 : null
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
 
@@ -51,6 +61,17 @@ const ChatPage = () => {
     }
   }, [hasCustomPersona])
 
+  // Watch for win condition and navigate to victory screen
+  useEffect(() => {
+    if (hasWon && currentLevelId) {
+      // Small delay to let the win alert disappear, then navigate to victory
+      const timer = setTimeout(() => {
+        navigate('/victory', { state: { levelId: currentLevelId } })
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [hasWon, currentLevelId, navigate])
+
   const handleQuestionSelect = async (optionId: string, questionText: string) => {
     if (isLoading || isGeneratingQuestions) return
 
@@ -62,9 +83,13 @@ const ChatPage = () => {
   }
 
   const handleBackToPersonaCreation = () => {
-    // Reset all game state before navigating
+    // Reset chat state but keep the level ID to go back to persona creation for the same level
     resetGameState()
-    navigate('/persona')
+    if (currentLevelId) {
+      navigate('/persona', { state: { levelId: currentLevelId } })
+    } else {
+      navigate('/levels')
+    }
   }
 
   const handleGenerateNewQuestions = () => {
@@ -72,6 +97,18 @@ const ChatPage = () => {
     setSelectedOption(null)
     generateFollowUpQuestions()
   }
+
+  const handleUndo = async () => {
+    if (messages.length <= 1) {
+      alert('No conversation turns to undo!')
+      return
+    }
+
+    // Clear selected option when undoing
+    setSelectedOption(null)
+    await undoLastTurn()
+  }
+
 
   const handleConfigChange = () => {
     const newPersona = prompt('Enter persona:', config.persona)
@@ -111,15 +148,14 @@ const ChatPage = () => {
         className="floating-button back-button"
         onClick={handleBackToPersonaCreation}
       >
-        ← Back to Persona Creation
+← New Persona
       </button>
 
       {/* Character Icons & Settings */}
       <div className="header-icons">
         <div className="character-icons">
-          🧞‍♂️ | ⊕
-          {apiKey && (
-            <span className="status-icon">🔑</span>
+          {currentLevelNumber && (
+            <span className="level-indicator">Level {currentLevelNumber}</span>
           )}
           {hasWon && (
             <span className="trophy-icon">🏆</span>
@@ -137,6 +173,22 @@ const ChatPage = () => {
           className="control-button new-questions"
         >
           🎲 New Q's
+        </button>
+        <button
+          onClick={handleUndo}
+          disabled={isGeneratingQuestions || isLoading || messages.length <= 1}
+          className="control-button undo"
+        >
+          ↶ Undo
+        </button>
+        <button
+          onClick={() => {
+            resetGameState()
+            navigate('/levels')
+          }}
+          className="control-button levels"
+        >
+          📚 Levels
         </button>
         {apiKey && (
           <button
@@ -207,18 +259,24 @@ const ChatPage = () => {
                 </div>
               )}
 
-              {isGeneratingQuestions && (
+              {isInitializing && (
+                <div className="loading-indicator generating">
+                  🧞‍♂️ Summoning your guide and preparing questions...
+                </div>
+              )}
+
+              {isGeneratingQuestions && !isInitializing && (
                 <div className="loading-indicator generating">
                   🎲 Generating new questions...
                 </div>
               )}
 
               <div className="questions-list">
-                {!isGeneratingQuestions && questionOptions.length > 0 ? questionOptions.map((option) => (
+                {!isGeneratingQuestions && !isInitializing && questionOptions.length > 0 ? questionOptions.map((option) => (
                   <button
                     key={option.id}
                     onClick={() => handleQuestionSelect(option.id, option.text)}
-                    disabled={isLoading || isGeneratingQuestions}
+                    disabled={isLoading || isGeneratingQuestions || isInitializing}
                     className={`question-button ${selectedOption === option.id ? 'selected' : ''}`}
                   >
                     <div className="question-id">
@@ -228,7 +286,7 @@ const ChatPage = () => {
                       {option.text}
                     </div>
                   </button>
-                )) : !isGeneratingQuestions && (
+                )) : !isGeneratingQuestions && !isInitializing && (
                   <div className="no-questions">
                     No questions available. Click "🎲 New Q's" to generate some!
                   </div>
