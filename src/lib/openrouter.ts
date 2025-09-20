@@ -112,7 +112,7 @@ class OpenRouterService {
     console.log(`👤 Character Name: "${characterName}"`)
     console.log(`❓ Question: "${question}"`)
     console.log(`📝 Context: "${context}"`)
-    const systemPrompt = `You are ${persona}. Your name is ${characterName}. Respond to questions from your perspective and knowledge.
+    const systemPrompt = `You are ${persona}. Your name is ${characterName}. Respond to questions from your perspective and knowledge. You are speaking to a curious young adult, not a peer or expert.
 
 IMPORTANT CONTENT GUIDELINES:
 - Keep all responses appropriate for a PG-13 audience
@@ -387,7 +387,7 @@ Example:
 
     // Count user messages (turns) to determine if we should include research question
     const userTurns = chatHistory.filter(msg => msg.role === 'user').length
-    const shouldIncludeResearchQuestion = userTurns >= 5 && researchQuestion
+    const shouldIncludeResearchQuestion = userTurns >= 3 && researchQuestion
 
     console.log(`🔢 User turns: ${userTurns}, Include research question: ${shouldIncludeResearchQuestion}`)
 
@@ -402,9 +402,7 @@ Example:
     const messages: ChatMessage[] = [
       {
         role: 'system',
-        content: `You are a game designer creating engaging questions for an educational AI game.
-
-        The player is talking to ${persona}.
+        content: `You are a young adult interested in learning by talking to a magical spirit guide summoned from history. The guide is ${persona}.
         ${context ? `Context: ${context}` : ''}
         ${historyContext}
         ${researchQuestionGuidance}
@@ -416,9 +414,11 @@ Example:
         - Varied in approach (personal experience, opinions, explanations, etc.)
         - Engaging and game-like
         - Based on what this persona would know or have experienced
-        - Very SHORT - only 1 sentence each
+        - Based on what a child might ask or find interesting
         ${chatHistory.length > 0 ? '- Building on the previous conversation naturally' : ''}
         ${shouldIncludeResearchQuestion ? `- At least one question should guide toward answering: "${researchQuestion}"` : ''}
+        - Don't assume any knowledge that hasn't been explicitly mentioned in the chat history
+        - Very SHORT - only 1 sentence each
 
         Respond with a JSON array in this exact format:
         [
