@@ -131,6 +131,7 @@ const PersonaCreation = () => {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentLevel, setCurrentLevel] = useState<any>(null)
+  const [showIntroModal, setShowIntroModal] = useState(false)
 
   const MAX_TAGS = 5
 
@@ -147,6 +148,12 @@ const PersonaCreation = () => {
         console.log(`🎯 Loading level: "${level.title}"`)
         setCurrentLevel(level)
         setCurrentQuestion(level.question)
+
+        // Check if this is the first time visiting persona creation
+        const hasSeenIntro = localStorage.getItem('hasSeenPersonaIntro')
+        if (!hasSeenIntro) {
+          setShowIntroModal(true)
+        }
       } else {
         console.error(`❌ Level not found: ${state.levelId}`)
         console.log('🔄 Redirecting to level selection')
@@ -181,7 +188,13 @@ const PersonaCreation = () => {
 
   const refreshTags = () => {
     setDisplayTags(getBalancedRandomTags(20))
-    console.log('🎲 Refreshed tags with balanced selection')
+    setSelectedTags([]) // Reset selected tags when rerolling
+    console.log('🎲 Refreshed tags with balanced selection and cleared selections')
+  }
+
+  const handleCloseIntroModal = () => {
+    setShowIntroModal(false)
+    localStorage.setItem('hasSeenPersonaIntro', 'true')
   }
 
   const generatePersona = async () => {
@@ -392,6 +405,54 @@ const PersonaCreation = () => {
           )
         })}
       </div>
+
+      {/* Introduction Modal */}
+      {showIntroModal && (
+        <div className="modal-overlay" onClick={handleCloseIntroModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>🧞‍♂️ Welcome to the Persona Creation Chamber</h2>
+            </div>
+            <div className="modal-body">
+              <div className="concept-explanation">
+                <h3>🎯 What You're Really Doing Here</h3>
+                <p>
+                  You're about to experience <strong>"latent space steering"</strong> - a core concept in AI!
+                  Think of AI knowledge as a vast multidimensional space where every possible concept exists.
+                </p>
+                <p>
+                  By combining seemingly unrelated tags (like "Viking" + "Botanist" + "1960s"),
+                  you're navigating to a unique point in this space to create your perfect guide persona.
+                </p>
+              </div>
+
+              <div className="gameplay-explanation">
+                <h3>🎮 How to Play</h3>
+                <ul>
+                  <li><strong>Select 1-5 tags</strong> that represent different aspects of your ideal guide</li>
+                  <li><strong>Mix time periods, professions, and cultures</strong> for unique combinations</li>
+                  <li><strong>Generate your persona</strong> and see how AI combines your choices</li>
+                  <li><strong>Chat with your guide</strong> to explore the level's research question</li>
+                  <li><strong>Discover</strong> how different tag combinations create wildly different perspectives!</li>
+                </ul>
+              </div>
+
+              <div className="pro-tip">
+                <h3>💡 Pro Tip</h3>
+                <p>
+                  The most interesting guides often come from unexpected combinations.
+                  Don't be afraid to mix a "Medieval Blacksmith" with "Space Age" and "Pacific Islander"!
+                </p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="modal-close-button" onClick={handleCloseIntroModal}>
+                🚀 Start Exploring the Latent Space!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -36,6 +36,7 @@ export interface GameState {
   unlockedLevels: string[]
   completedLevels: string[]
   hasRewindAbility: boolean
+  hasUndoAbility: boolean
   apiKey: string | null
 }
 

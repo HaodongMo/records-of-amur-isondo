@@ -32,13 +32,14 @@ const ChatPage = () => {
     undoLastTurn
   } = useChatStore()
 
-  const { getLevel, levels } = useGameStore()
+  const { getLevel, levels, hasUndoAbility, completedLevels, getNextLevel } = useGameStore()
 
   // Get current level info if we're in level mode
   const currentLevel = currentLevelId ? getLevel(currentLevelId) : null
   const currentLevelNumber = currentLevel ? levels.findIndex(level => level.id === currentLevel.id) + 1 : null
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
+  const [showPersonaSuggestionModal, setShowPersonaSuggestionModal] = useState(false)
 
   // Check if user has a custom persona, redirect to creation if not
   useEffect(() => {
@@ -61,16 +62,16 @@ const ChatPage = () => {
     }
   }, [hasCustomPersona])
 
-  // Watch for win condition and navigate to victory screen
+  // Victory is now handled in-chat instead of redirecting to victory screen
+
+  // Show persona suggestion modal after 10 messages (but only if not won yet)
   useEffect(() => {
-    if (hasWon && currentLevelId) {
-      // Small delay to let the win alert disappear, then navigate to victory
-      const timer = setTimeout(() => {
-        navigate('/victory', { state: { levelId: currentLevelId } })
-      }, 100)
-      return () => clearTimeout(timer)
+    const suggestionShown = localStorage.getItem('personaSuggestionShown')
+    if (!hasWon && !suggestionShown && messages.length >= 10) {
+      setShowPersonaSuggestionModal(true)
+      localStorage.setItem('personaSuggestionShown', 'true')
     }
-  }, [hasWon, currentLevelId, navigate])
+  }, [messages.length, hasWon])
 
   const handleQuestionSelect = async (optionId: string, questionText: string) => {
     if (isLoading || isGeneratingQuestions) return
@@ -124,6 +125,22 @@ const ChatPage = () => {
     }
   }
 
+  const handleDebugMessage = async () => {
+    const customMessage = prompt('Enter custom message to send:')
+    if (customMessage && customMessage.trim()) {
+      await sendUserMessage(customMessage.trim())
+    }
+  }
+
+  const handleClosePersonaSuggestionModal = () => {
+    setShowPersonaSuggestionModal(false)
+  }
+
+  const handleTryNewPersona = () => {
+    setShowPersonaSuggestionModal(false)
+    handleBackToPersonaCreation()
+  }
+
   return (
     <div className="chat-page">
       {/* Background Image */}
@@ -151,6 +168,33 @@ const ChatPage = () => {
 ← New Persona
       </button>
 
+      {/* Debug Button */}
+      <button
+        className="debug-button"
+        onClick={handleDebugMessage}
+        title="Debug: Send custom message"
+      >
+        MSG
+      </button>
+
+      {/* Floating Continue Button (appears when player wins) */}
+      {hasWon && currentLevelId && (
+        <button
+          className="floating-continue-button"
+          onClick={() => {
+            const nextLevel = getNextLevel(currentLevelId)
+            resetGameState()
+            if (nextLevel) {
+              navigate('/persona', { state: { levelId: nextLevel.id } })
+            } else {
+              navigate('/levels')
+            }
+          }}
+        >
+          {getNextLevel(currentLevelId) ? `Next Level →` : 'Level Selection'}
+        </button>
+      )}
+
       {/* Character Icons & Settings */}
       <div className="header-icons">
         <div className="character-icons">
@@ -174,13 +218,15 @@ const ChatPage = () => {
         >
           🎲 New Q's
         </button>
-        <button
-          onClick={handleUndo}
-          disabled={isGeneratingQuestions || isLoading || messages.length <= 1}
-          className="control-button undo"
-        >
-          ↶ Undo
-        </button>
+        {hasUndoAbility && (
+          <button
+            onClick={handleUndo}
+            disabled={isGeneratingQuestions || isLoading || messages.length <= 1}
+            className="control-button undo"
+          >
+            ↶ Undo
+          </button>
+        )}
         <button
           onClick={() => {
             resetGameState()
@@ -242,7 +288,7 @@ const ChatPage = () => {
           <div className="question-section">
             <div className="question-content">
               <div className="question-header">
-                QUESTION
+                {hasWon ? 'VICTORY!' : 'QUESTION'}
               </div>
 
               {/* Error Display */}
@@ -252,50 +298,118 @@ const ChatPage = () => {
                 </div>
               )}
 
-              {/* Loading Indicators */}
-              {isLoading && (
-                <div className="loading-indicator thinking">
-                  🧞‍♂️ Thinking...
-                </div>
-              )}
-
-              {isInitializing && (
-                <div className="loading-indicator generating">
-                  🧞‍♂️ Summoning your guide and preparing questions...
-                </div>
-              )}
-
-              {isGeneratingQuestions && !isInitializing && (
-                <div className="loading-indicator generating">
-                  🎲 Generating new questions...
-                </div>
-              )}
-
-              <div className="questions-list">
-                {!isGeneratingQuestions && !isInitializing && questionOptions.length > 0 ? questionOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => handleQuestionSelect(option.id, option.text)}
-                    disabled={isLoading || isGeneratingQuestions || isInitializing}
-                    className={`question-button ${selectedOption === option.id ? 'selected' : ''}`}
-                  >
-                    <div className="question-id">
-                      {option.id}
+              {/* Victory Display */}
+              {hasWon ? (
+                <div className="victory-content">
+                  <div className="victory-message">
+                    🎉 Congratulations! You've successfully mastered:
+                    <div className="topic-highlight">
+                      {config.targetTopic}
                     </div>
-                    <div className="question-text">
-                      {option.text}
-                    </div>
-                  </button>
-                )) : !isGeneratingQuestions && !isInitializing && (
-                  <div className="no-questions">
-                    No questions available. Click "🎲 New Q's" to generate some!
+                    {completedLevels.length === 5 && hasUndoAbility && (
+                      <div className="unlock-message">
+                        🎊 <strong>New Ability Unlocked!</strong> 🎊
+                        <br />
+                        You can now use the <strong>Undo</strong> button in conversations!
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                  <button
+                    onClick={handleGenerateNewQuestions}
+                    disabled={isGeneratingQuestions || isLoading}
+                    className="continue-conversation-button"
+                  >
+                    Continue Conversation
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Loading Indicators */}
+                  {isLoading && (
+                    <div className="loading-indicator thinking">
+                      🧞‍♂️ Thinking...
+                    </div>
+                  )}
+
+                  {isInitializing && (
+                    <div className="loading-indicator generating">
+                      🧞‍♂️ Summoning your guide and preparing questions...
+                    </div>
+                  )}
+
+                  {isGeneratingQuestions && !isInitializing && (
+                    <div className="loading-indicator generating">
+                      🎲 Generating new questions...
+                    </div>
+                  )}
+
+                  <div className="questions-list">
+                    {!isGeneratingQuestions && !isInitializing && questionOptions.length > 0 ? questionOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        onClick={() => handleQuestionSelect(option.id, option.text)}
+                        disabled={isLoading || isGeneratingQuestions || isInitializing}
+                        className={`question-button ${selectedOption === option.id ? 'selected' : ''}`}
+                      >
+                        <div className="question-id">
+                          {option.id}
+                        </div>
+                        <div className="question-text">
+                          {option.text}
+                        </div>
+                      </button>
+                    )) : !isGeneratingQuestions && !isInitializing && (
+                      <div className="no-questions">
+                        No questions available. Click "🎲 New Q's" to generate some!
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Persona Suggestion Modal */}
+      {showPersonaSuggestionModal && (
+        <div className="modal-overlay" onClick={handleClosePersonaSuggestionModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>🤔 Having Trouble Finding What You Need?</h2>
+            </div>
+            <div className="modal-body">
+              <div className="suggestion-explanation">
+                <h3>💡 Different Persona, Different Perspective</h3>
+                <p>
+                  You've been chatting for a while! Sometimes a different guide persona can offer
+                  fresh insights and help you discover new angles on your research question.
+                </p>
+                <p>
+                  Each persona brings their own expertise, cultural background, and perspective.
+                  A medieval scholar might approach your question very differently than a modern scientist!
+                </p>
+              </div>
+
+              <div className="suggestion-actions">
+                <h3>🎭 Try a New Approach</h3>
+                <p>
+                  Would you like to create a different persona and see how they tackle this same question?
+                  Your progress is saved, so you can always come back to this conversation later.
+                </p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="modal-action-button continue" onClick={handleClosePersonaSuggestionModal}>
+                Continue with Current Guide
+              </button>
+              <button className="modal-action-button try-new" onClick={handleTryNewPersona}>
+                🎲 Try a New Persona
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -16,6 +16,7 @@ interface GameStore extends GameState {
   completeLevel: (levelId: string) => void
   setApiKey: (apiKey: string) => void
   unlockRewindAbility: () => void
+  unlockUndoAbility: () => void
   resetGame: () => void
 }
 
@@ -27,6 +28,7 @@ const useGameStore = create<GameStore>()(
       unlockedLevels: ['intro'],
       completedLevels: [],
       hasRewindAbility: false,
+      hasUndoAbility: false,
       apiKey: null,
 
       getLevel: (levelId) => {
@@ -94,10 +96,14 @@ const useGameStore = create<GameStore>()(
             }
           })
 
+          // Unlock undo ability after completing 5 levels
+          const shouldUnlockUndo = newCompletedLevels.length >= 5 && !state.hasUndoAbility
+
           return {
             ...state,
             completedLevels: newCompletedLevels,
-            unlockedLevels: newUnlockedLevels
+            unlockedLevels: newUnlockedLevels,
+            hasUndoAbility: shouldUnlockUndo || state.hasUndoAbility
           }
         })
       },
@@ -110,12 +116,17 @@ const useGameStore = create<GameStore>()(
         set({ hasRewindAbility: true })
       },
 
+      unlockUndoAbility: () => {
+        set({ hasUndoAbility: true })
+      },
+
       resetGame: () => {
         set({
           currentLevel: null,
           unlockedLevels: ['intro'],
           completedLevels: [],
-          hasRewindAbility: false
+          hasRewindAbility: false,
+          hasUndoAbility: false
         })
       }
     }),
@@ -126,6 +137,7 @@ const useGameStore = create<GameStore>()(
         unlockedLevels: state.unlockedLevels,
         completedLevels: state.completedLevels,
         hasRewindAbility: state.hasRewindAbility,
+        hasUndoAbility: state.hasUndoAbility,
         apiKey: state.apiKey
       })
     }

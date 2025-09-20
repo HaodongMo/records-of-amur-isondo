@@ -8,7 +8,7 @@ import './Victory.css'
 const Victory = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { getLevel, getNextLevel } = useGameStore()
+  const { getLevel, getNextLevel, completedLevels, hasUndoAbility } = useGameStore()
   const { resetGameState } = useChatStore()
 
   // Get level ID from route state
@@ -92,11 +92,8 @@ const Victory = () => {
       {/* Victory Content */}
       <div className="victory-content">
         <div className="victory-header">
-          <h1 className="victory-title">🎉 Level Complete! 🎉</h1>
-          <div className="completed-level">
-            <span className="level-number">Level {currentLevel.title}</span>
-            <span className="level-name">{currentLevel.description}</span>
-          </div>
+          <h1 className="victory-title">🎉 {currentLevel.title} 🎉</h1>
+          <p className="level-complete-text">Level Complete!</p>
         </div>
 
         <div className="victory-message">
@@ -104,6 +101,13 @@ const Victory = () => {
           <div className="topic-highlight">
             {currentLevel.targetTopic}
           </div>
+          {completedLevels.length === 5 && hasUndoAbility && (
+            <div className="unlock-message">
+              🎊 <strong>New Ability Unlocked!</strong> 🎊
+              <br />
+              You can now use the <strong>Undo</strong> button in conversations to rewind and try different questions!
+            </div>
+          )}
         </div>
 
         <div className="victory-actions">

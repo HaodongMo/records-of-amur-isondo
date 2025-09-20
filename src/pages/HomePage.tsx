@@ -1,29 +1,68 @@
 import { useNavigate } from 'react-router-dom'
+import backgroundImage from '../assets/background.webp'
+import './HomePage.css'
 
 const HomePage = () => {
   const navigate = useNavigate()
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-white mb-4">
-          The Records of Amur Isondo
-        </h1>
-        <p className="text-xl text-gray-300 mb-8">
-          A magical artifact that possesses the combined knowledge of all mankind
-        </p>
-        <div className="bg-slate-800 rounded-lg p-6 max-w-2xl mx-auto mb-8">
-          <p className="text-gray-200 mb-6">
-            Welcome to the educational AI game where you'll learn about AI as simulators
-            by summoning different spirits to help answer questions.
-          </p>
-          <div className="space-y-4">
+    <div className="home-page">
+      {/* Background Image */}
+      <div
+        className="background-image"
+        style={{ backgroundImage: `url(${backgroundImage})` }}
+      />
+
+      {/* Texture Overlay */}
+      <div className="texture-overlay">
+        <div className="slanted-bar" />
+      </div>
+
+      {/* Central Content Area */}
+      <div className="central-content">
+        <div className="game-header">
+          <h1 className="game-title">The Records of Amur Isondo</h1>
+          <p className="game-subtitle">A magical artifact that possesses the combined knowledge of all mankind</p>
+        </div>
+
+        <div className="welcome-content">
+          <div className="welcome-text">
+            <h2 className="section-title">🧞‍♂️ Welcome, Seeker of Knowledge</h2>
+            <p className="description">
+              Embark on an educational journey where you'll discover the secrets of AI as simulators.
+              Use the mystical Records to summon different guide spirits, each with their own expertise,
+              cultural background, and unique perspective on the questions you seek to answer.
+            </p>
+            <div className="features-list">
+              <div className="feature-item">
+                <span className="feature-icon">🎭</span>
+                <span className="feature-text">Create custom AI personas through tag selection</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">🌟</span>
+                <span className="feature-text">Explore diverse perspectives on complex topics</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">📚</span>
+                <span className="feature-text">Learn through interactive conversations</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">🎯</span>
+                <span className="feature-text">Master the concept of latent space steering</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="start-section">
             <button
               onClick={() => navigate('/levels')}
-              className="bg-amber-600 hover:bg-amber-700 text-black font-bold py-3 px-6 rounded-lg text-lg transition-colors"
+              className="start-button"
             >
-              Start Learning
+              🚀 Begin Your Journey
             </button>
+            <p className="start-hint">
+              Choose from 30 progressively challenging levels designed to teach you about AI, technology, philosophy, and more!
+            </p>
           </div>
         </div>
       </div>
