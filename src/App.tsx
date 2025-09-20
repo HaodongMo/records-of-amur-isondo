@@ -6,8 +6,11 @@ import ChatPage from './pages/ChatPage'
 import Victory from './pages/Victory'
 
 function App() {
+  // Use basename for GitHub Pages deployment (production), but not for local development
+  const basename = import.meta.env.PROD ? '/records-of-amur-isondo' : ''
+
   return (
-    <Router>
+    <Router basename={basename}>
       <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
         <Routes>
           <Route path="/" element={<HomePage />} />
