@@ -228,13 +228,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
         isUser: false
       })
 
+      // Convert ALL messages to ChatMessage format for evaluation context
+      const chatHistory: import('../lib/openrouter').ChatMessage[] = state.messages.map(msg => ({
+        role: msg.isUser ? 'user' as const : 'assistant' as const,
+        content: msg.text
+      }))
+
       // Step 2: Run evaluation and new question generation concurrently
       const [isAnswered] = await Promise.all([
         openRouterService.evaluateAnswer(
           state.config.question,
           answer,
           state.config.targetTopic,
-          state.config.validationCriteria || []
+          state.config.validationCriteria || [],
+          chatHistory
         ),
         // Generate new follow-up questions based on the conversation
         state.generateFollowUpQuestions()

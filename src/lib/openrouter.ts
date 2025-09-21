@@ -129,7 +129,7 @@ IMPORTANT CONTENT GUIDELINES:
 - Characters may not know modern concepts, technology, or events outside their historical context.
 - If the question is outside your character's knowledge or time period, they might respond in a variety of ways, such as with confusion, curiosity, anger, or deflection.
 - Represent your character's historical perspective accurately. You are ${characterName}, not an AI.
-- Be brief. Say only one single sentence.
+- Be brief. Say only one single sentence or two sentences at most.
 - Don't waffle or say too much. Be direct and to the point.
 
 ${context ? `Context: ${context}` : ''}`
@@ -155,7 +155,8 @@ ${context ? `Context: ${context}` : ''}`
     question: string,
     answer: string,
     targetTopic: string,
-    validationCriteria: string[]
+    validationCriteria: string[],
+    chatHistory?: ChatMessage[]
   ): Promise<boolean> {
     console.log(`🎯 Evaluating Answer for topic: "${targetTopic}"`)
     console.log(`❓ Question: "${question}"`)
@@ -163,6 +164,11 @@ ${context ? `Context: ${context}` : ''}`
     console.log(`📋 Criteria: ${validationCriteria.length} requirements`)
 
     const criteriaText = validationCriteria.map((criterion, index) => `${index + 1}. ${criterion}`).join('\n')
+
+    // Format chat history for context if available
+    const historyText = chatHistory && chatHistory.length > 0
+      ? `\n\nCONVERSATION CONTEXT:\n${chatHistory.map(msg => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n')}\n`
+      : ''
 
     const messages: ChatMessage[] = [
       {
@@ -172,14 +178,16 @@ ${context ? `Context: ${context}` : ''}`
         The answer should meet these specific criteria:
         ${criteriaText}
 
+        ${chatHistory && chatHistory.length > 0 ? 'Consider the full conversation context when evaluating. The main research question may have been explored through multiple exchanges.' : ''}
+
         Respond with ONLY "yes" or "no" - nothing else.
 
-        Answer "yes" if the response meaningfully addresses at least 2-3 of the criteria above.
+        Answer "yes" if the response meaningfully addresses at least 2-3 of the criteria above, taking into account the full conversation context.
         Answer "no" if the response is evasive, off-topic, or doesn't address the key requirements.`
       },
       {
         role: 'user',
-        content: `Question: ${question}\nAnswer: ${answer}\n\nDoes this answer adequately address the question about ${targetTopic} based on the criteria?`
+        content: `Question: ${question}\nAnswer: ${answer}${historyText}\n\nDoes this answer adequately address the question about ${targetTopic} based on the criteria and conversation context?`
       }
     ]
 
