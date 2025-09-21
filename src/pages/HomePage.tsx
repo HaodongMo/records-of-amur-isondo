@@ -66,6 +66,16 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Credits Link */}
+      <div className="credits-link-section">
+        <button
+          onClick={() => navigate('/credits')}
+          className="credits-link"
+        >
+          Credits
+        </button>
+      </div>
     </div>
   )
 }

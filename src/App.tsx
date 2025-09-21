@@ -4,6 +4,7 @@ import LevelSelection from './pages/LevelSelection'
 import PersonaCreation from './pages/PersonaCreation'
 import ChatPage from './pages/ChatPage'
 import Victory from './pages/Victory'
+import Credits from './pages/Credits'
 
 function App() {
   // Use basename for GitHub Pages deployment (production), but not for local development
@@ -18,6 +19,7 @@ function App() {
           <Route path="/persona" element={<PersonaCreation />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/victory" element={<Victory />} />
+          <Route path="/credits" element={<Credits />} />
         </Routes>
       </div>
     </Router>
